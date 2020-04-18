@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="18px" height="15px" viewBox="0 0 18 15" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 63.1 (92452) - https://sketch.com -->
+    <title>Group Copy</title>
+    <desc>Created with Sketch.</desc>
+    <g id="form" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Mobile-Copy-42" transform="translate(-24.000000, -26.000000)">
+            <rect id="Rectangle" fill="#08080C" x="0" y="0" width="320" height="171"></rect>
+            <g id="Group-Copy" transform="translate(33.000000, 33.000000) rotate(-180.000000) translate(-33.000000, -33.000000) translate(26.000000, 28.000000)" stroke="#FFFFFF" stroke-linecap="square" stroke-width="3">
+                <line x1="0.384615385" y1="5" x2="12.6923077" y2="5" id="Line-4-Copy-8"></line>
+                <line x1="7.69230769" y1="0" x2="12.9217505" y2="4.58879453" id="Line-4-Copy-7"></line>
+                <line x1="8.46153846" y1="9.84482739" x2="13.050333" y2="4.61538462" id="Line-4-Copy-6"></line>
+            </g>
+        </g>
+    </g>
+</svg>

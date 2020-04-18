@@ -1,21 +1,141 @@
-import React from "react"
+/** @jsx jsx */
+import React, { useState } from "react"
 import { Link } from "gatsby"
+import styled from "@emotion/styled"
+import { css, jsx } from "@emotion/core"
 
-import Layout from "../components/layout"
 import Image from "../components/image"
 import SEO from "../components/seo"
 
-const IndexPage = () => (
-  <Layout>
-    <SEO title="Home" />
-    <h1>Hi people</h1>
-    <p>Welcome to your new Gatsby site.</p>
-    <p>Now go build something great.</p>
-    <div style={{ maxWidth: `300px`, marginBottom: `1.45rem` }}>
-      <Image />
+const Background = styled.div`
+  min-width: 100vw;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+`
+
+const Layout = styled.div`
+  width: 450px;
+  min-height: 100%;
+  background: black;
+  display: flex;
+  justify-content: center;
+  position: relative;
+`
+
+const Drawer = styled.section`
+  background-color: white;
+  border-radius: 30px 30px 0px 0px;
+  height: 600px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+`
+
+const Spacer = styled.div`
+  width: 35px;
+`
+const Steps = ({ steps, currentStep, onSelect, ...props }) => {
+  const selectedState = css`
+    ::before {
+      content: "";
+      border: 2px solid white;
+      border-radius: 999px;
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+  `
+  return (
+    <div
+      css={css`
+        display: flex;
+        align-items: center;
+      `}
+    >
+      {[...Array(steps).keys()].map(e => {
+        const step = e + 1
+        return (
+          <>
+            {e > 0 && <Spacer />}
+            <div
+              css={css`
+                position: relative;
+                color: white;
+                font-size: 24px;
+                font-family: righteous;
+                ${currentStep === step && selectedState}
+              `}
+            >
+              {step}
+            </div>
+          </>
+        )
+      })}
     </div>
-    <Link to="/page-2/">Go to page 2</Link>
-  </Layout>
+  )
+}
+
+const Header = ({ children, backDestination = null }) => (
+  <header
+    css={css`
+      height: 80px;
+      width: 100%;
+      display: grid;
+      grid-template-columns:
+        minmax(20%, 50px)
+        1fr
+        minmax(20%, 50px);
+      align-items: center;
+      justify-items: center;
+    `}
+  >
+    {backDestination && (
+      <button
+        css={css`
+          border: none;
+          background: none;
+          background-image: url(${require("../images/BackArrow.svg")});
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: 20px;
+          height: 30px;
+          width: 20px;
+        `}
+      />
+    )}
+    {children}
+    <button
+      css={css`
+        font-family: righteous;
+        color: white;
+        font-size: 22px;
+      `}
+    >
+      next
+    </button>
+  </header>
 )
 
-export default IndexPage
+const Index = () => <Form />
+
+const Form = ({ steps, ...props }) => (
+  <Background>
+    <Layout>
+      <Header backDestination={"hello"}>
+        <Steps steps={4} selectedState={2} />
+      </Header>
+      <Drawer />
+    </Layout>
+  </Background>
+)
+
+export default Index
+
+//API considerations
+//  preset heights for bottom drawer
+//  number of form steps
+//  destination of back button
