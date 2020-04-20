@@ -3,6 +3,8 @@ import React, { useState } from "react"
 import { Link } from "gatsby"
 import styled from "@emotion/styled"
 import { css, jsx } from "@emotion/core"
+import { Row, Box, Col } from "boostly-ui2"
+import Drawer from "../components/drawer"
 
 import Image from "../components/image"
 import SEO from "../components/seo"
@@ -23,15 +25,6 @@ const Layout = styled.div`
   position: relative;
 `
 
-const Drawer = styled.section`
-  background-color: white;
-  border-radius: 30px 30px 0px 0px;
-  height: 600px;
-  width: 100%;
-  position: absolute;
-  bottom: 0;
-`
-
 const Spacer = styled.div`
   width: 35px;
 `
@@ -45,7 +38,7 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
       width: 50px;
       height: 50px;
       left: 50%;
-      top: 50%;
+      top: 55%;
       transform: translate(-50%, -50%);
     }
   `
@@ -69,6 +62,7 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
                 font-family: righteous;
                 ${currentStep === step && selectedState}
               `}
+              onClick={() => onSelect(step)}
             >
               {step}
             </div>
@@ -79,59 +73,80 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
   )
 }
 
-const Header = ({ children, backDestination = null }) => (
-  <header
-    css={css`
-      height: 80px;
-      width: 100%;
-      display: grid;
-      grid-template-columns:
-        minmax(20%, 50px)
-        1fr
-        minmax(20%, 50px);
-      align-items: center;
-      justify-items: center;
-    `}
-  >
-    {backDestination && (
-      <button
-        css={css`
-          border: none;
-          background: none;
-          background-image: url(${require("../images/BackArrow.svg")});
-          background-position: center;
-          background-repeat: no-repeat;
-          background-size: 20px;
-          height: 30px;
-          width: 20px;
-        `}
-      />
-    )}
-    {children}
-    <button
+const Header = ({
+  children,
+  backDestination = null,
+  onRightButtonClick = _ => _,
+}) => {
+  const handleBack = () => {
+    window.location.href = backDestination
+  }
+  return (
+    <header
       css={css`
-        font-family: righteous;
-        color: white;
-        font-size: 22px;
+        height: 80px;
+        width: 100%;
+        display: grid;
+        grid-template-columns:
+          minmax(20%, 50px)
+          1fr
+          minmax(20%, 50px);
+        align-items: center;
+        justify-items: center;
       `}
     >
-      next
-    </button>
-  </header>
-)
+      {backDestination && (
+        <button
+          css={css`
+            border: none;
+            background: none;
+            background-image: url(${require("../images/BackArrow.svg")});
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: 20px;
+            height: 30px;
+            width: 20px;
+          `}
+          onClick={handleBack}
+        />
+      )}
+      {children}
+      <button
+        css={css`
+          font-family: righteous;
+          color: white;
+          font-size: 22px;
+        `}
+        onClick={onRightButtonClick}
+      >
+        next
+      </button>
+    </header>
+  )
+}
+
+
 
 const Index = () => <Form />
 
-const Form = ({ steps, ...props }) => (
-  <Background>
-    <Layout>
-      <Header backDestination={"hello"}>
-        <Steps steps={4} selectedState={2} />
-      </Header>
-      <Drawer />
-    </Layout>
-  </Background>
-)
+const Form = ({ steps, ...props }) => {
+  const [selectedIndex, setIndex] = useState(1)
+  return (
+    <Background>
+      <Layout>
+        <Header
+          backDestination={"hello"}
+          onRightButtonClick={() => setIndex(prev => (prev % 4) + 1)}
+        >
+          <Steps steps={4} currentStep={selectedIndex} onSelect={setIndex} />
+        </Header>
+        <Drawer>
+          <div>hello</div>
+        </Drawer>
+      </Layout>
+    </Background>
+  )
+}
 
 export default Index
 
