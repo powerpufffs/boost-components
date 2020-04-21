@@ -1,0 +1,17 @@
+export default {
+  purple: "hsl(260, 100%, 57%)",
+  lightpurple: "hsl(259, 100%, 96%)",
+  mediumpurple: "hsl(244, 26%, 33%)",
+  white: "hsl(0, 0%, 100%)",
+  blue: "hsl(219, 91%, 63%)",
+  lightblue: "hsl(218, 48%, 95%)",
+  dividerblue: "hsl(240, 4%, 95%)",
+  fontblue: "hsl(209, 36%, 14%)",
+  shadowBlue: "hsl(197, 100%, 86%)",
+  black: "hsl(0, 0%, 0%)",
+  darkgray: "hsl(0, 0%,30%)",
+  gray: "hsl(0, 0%, 89%)",
+  lightgray: "hsl(0, 0%, 96%)",
+  bordergray: "hsl(214, 7%, 81%)",
+  chatgray: "hsl(60, 1%, 86%)",
+}

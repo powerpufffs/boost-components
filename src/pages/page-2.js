@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import React, { useState } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { css, jsx } from "@emotion/core"
 import styled from "@emotion/styled"
 import { Row, Col, Box, settings, Arrow, Title } from "boostly-ui2"
@@ -7,10 +7,92 @@ import Shell from "../components/shell"
 import Drawer from "../components/drawer"
 import TextButton from "../components/textButton"
 import ImageButton from "../components/imageButton"
+import { RadioGroup } from "../components/radioGroup"
+import ButtonRound from "../components/buttonRound"
+import ChatBubble from "./chatBubble"
+import TextField from "./textfield"
 
 const Spacer = styled.div`
   width: 35px;
 `
+
+const AudienceStep = () => {
+  const [selectedIndex, setIndex] = useState(0)
+  const data = useMemo(
+    () => [
+      {
+        label: "All Subscribers",
+        value: "250",
+      },
+      {
+        label: "3pd Subscribers",
+        value: "355",
+      },
+      {
+        label: "Best Customers",
+        value: "22",
+      },
+    ],
+    []
+  )
+  return (
+    <>
+      <Row
+        y
+        css={css`
+          height: 60px;
+          padding-left: 34px;
+          padding-right: 20px;
+        `}
+        space="between"
+      >
+        <ButtonRound text="+ Create" color="black" onClick={() => {}} />
+        <img
+          src={require("../images/group.svg")}
+          css={css`
+            margin: 0px;
+          `}
+        />
+      </Row>
+      <RadioGroup
+        data={data}
+        defaultIndex={0}
+        selectedIndex={selectedIndex}
+        onSelect={setIndex}
+      />
+    </>
+  )
+}
+
+const MessageStep = () => {
+  const [text, setText] = useState(
+    "Welcome to the best cat you've ever fished from a lake!"
+  )
+  return (
+    <Col>
+      <div
+        css={css`
+          padding: 20px 20px;
+        `}
+      >
+        <ChatBubble>
+          <Title>
+            <p>{text}</p>
+            Reply STOP to end msg&data rates may apply
+          </Title>
+        </ChatBubble>
+        <TextField
+          css={css`
+            margin-top: 20px;
+            height: 80px;
+          `}
+          placeholder={text}
+          onChange={e => setText(e.target.value)}
+        />
+      </div>
+    </Col>
+  )
+}
 
 const NavHeight = 80
 const Nav = ({ goBackTo, left, center, right }) => (
@@ -20,9 +102,9 @@ const Nav = ({ goBackTo, left, center, right }) => (
       width: 100%;
       display: grid;
       grid-template-columns:
-        minmax(auto, 33%)
+        minmax(auto, 20%)
         1fr
-        minmax(auto, 33%);
+        minmax(auto, 20%);
       grid-template-areas: "left center right";
       align-items: center;
       justify-items: center;
@@ -91,7 +173,7 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
       {[...Array(steps).keys()].map(e => {
         const step = e + 1
         return (
-          <>
+          <React.Fragment key={step}>
             {e > 0 && <Spacer />}
             <div
               css={css`
@@ -105,7 +187,7 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
             >
               {step}
             </div>
-          </>
+          </React.Fragment>
         )
       })}
     </div>
@@ -113,7 +195,31 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
 }
 
 const Page2 = () => {
-  const [selectedIndex, setIndex] = useState(1)
+  const [currentStep, setStep] = useState(1)
+  const [moveUp, setMoveUp] = useState(false)
+
+  useEffect(() => {
+    setMoveUp(currentStep === states.length || !states[currentStep - 1].title)
+  }, [currentStep])
+
+  const states = useMemo(
+    () => [
+      {
+        title: "Who is the intended audience?",
+        view: <AudienceStep />,
+      },
+      {
+        title: "What message are we sending?",
+        view: <MessageStep />,
+      },
+      {
+        title: "How do we look?",
+        view: <></>,
+      },
+    ],
+    []
+  )
+
   return (
     <SpecialShell>
       {({ Nav, NavHeight, Container, Drawer }) => (
@@ -125,18 +231,30 @@ const Page2 = () => {
           `}
         >
           <Nav
-            left={<ImageButton imageUrl={require("../images/BackArrow.svg")} />}
-            right={
-              <TextButton
-                text="next"
-                onClick={() => setIndex(prev => (prev % 3) + 1)}
+            left={
+              <ImageButton
+                imageUrl={require("../images/BackArrow.svg")}
+                onClick={() => setStep(1)}
               />
             }
             center={
-              <Steps
-                steps={3}
-                currentStep={selectedIndex}
-                onSelect={setIndex}
+              currentStep !== states.length ? (
+                <Steps steps={3} currentStep={currentStep} onSelect={setStep} />
+              ) : (
+                <Title
+                  css={css`
+                    color: white;
+                    font-size: 20px;
+                  `}
+                >
+                  {states[currentStep - 1].title}
+                </Title>
+              )
+            }
+            right={
+              <TextButton
+                text="next"
+                onClick={() => setStep(prev => (prev % 3) + 1)}
               />
             }
           />
@@ -147,7 +265,7 @@ const Page2 = () => {
             height="100%"
             x
           >
-            {selectedIndex !== 2 && (
+            {states[currentStep - 1].title && currentStep !== states.length && (
               <Title
                 css={css`
                   color: white;
@@ -155,18 +273,22 @@ const Page2 = () => {
                   margin-top: 20px;
                 `}
               >
-                Who is the intended audience?
+                {states[currentStep - 1].title}
               </Title>
             )}
             <Drawer
-              height={`calc(100% - ${selectedIndex !== 2 ? "160px" : "80px"})`}
+              height={`calc(100% - ${
+                moveUp ? `${NavHeight}px` : `${NavHeight * 2}px`
+              })`}
               css={css`
                 position: absolute;
                 bottom: 0;
                 left: 0;
                 right: 0;
               `}
-            />
+            >
+              {states[currentStep - 1].view || null}
+            </Drawer>
           </Col>
         </Container>
       )}
