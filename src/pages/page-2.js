@@ -16,7 +16,7 @@ const Spacer = styled.div`
   width: 35px;
 `
 
-const AudienceStep = () => {
+const AudienceStep = ({ onSelect }) => {
   const [selectedIndex, setIndex] = useState(0)
   const data = useMemo(
     () => [
@@ -194,31 +194,13 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
   )
 }
 
-const Page2 = () => {
+const StepForm = ({ states, onNext, onSubmit }) => {
   const [currentStep, setStep] = useState(1)
   const [moveUp, setMoveUp] = useState(false)
 
   useEffect(() => {
     setMoveUp(currentStep === states.length || !states[currentStep - 1].title)
   }, [currentStep])
-
-  const states = useMemo(
-    () => [
-      {
-        title: "Who is the intended audience?",
-        view: <AudienceStep />,
-      },
-      {
-        title: "What message are we sending?",
-        view: <MessageStep />,
-      },
-      {
-        title: "How do we look?",
-        view: <></>,
-      },
-    ],
-    []
-  )
 
   return (
     <SpecialShell>
@@ -287,12 +269,54 @@ const Page2 = () => {
                 right: 0;
               `}
             >
-              {states[currentStep - 1].view || null}
+              {states[currentStep - 1].view({
+                onDone: ({ data }) => onNext({ currentStep, data }),
+              }) || null}
             </Drawer>
           </Col>
         </Container>
       )}
     </SpecialShell>
+  )
+}
+
+const states = [
+  {
+    step: 1,
+    title: "Who is the intended audience?",
+    view: ({ ...props }) => <AudienceStep {...props} />,
+  },
+  {
+    step: 2,
+    title: "What message are we sending?",
+    view: ({ ...props }) => <MessageStep {...props} />,
+  },
+  {
+    step: 3,
+    title: "How do we look?",
+    view: () => <></>,
+  },
+]
+
+const Page2 = () => {
+  const [payload, setPayload] = useState({})
+  const handleNext = ({ step, data }) => {
+    switch (step) {
+      case states[0].step:
+      //handle the data
+      case states[1].step:
+      //like save it to a shared payload
+      case states[2].step:
+      //or put it into global context
+      default:
+        break
+    }
+  }
+  const handleSubmit = () => {
+    // Form indicates that it has reached the end of the form
+  }
+  return (
+    <StepForm states={states} onNext={handleNext} onSubmit={handleSubmit} />
   )
 }
 
