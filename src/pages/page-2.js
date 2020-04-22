@@ -16,8 +16,11 @@ const Spacer = styled.div`
   width: 35px;
 `
 
-const AudienceStep = ({ onSelect }) => {
+const AudienceStep = ({ onSelect, onChange }) => {
   const [selectedIndex, setIndex] = useState(0)
+  useEffect(() => {
+    onChange(data[selectedIndex])
+  }, [selectedIndex])
   const data = useMemo(
     () => [
       {
@@ -64,10 +67,13 @@ const AudienceStep = ({ onSelect }) => {
   )
 }
 
-const MessageStep = () => {
+const MessageStep = ({ onChange }) => {
   const [text, setText] = useState(
     "Welcome to the best cat you've ever fished from a lake!"
   )
+  useEffect(() => {
+    onChange(text)
+  }, [text])
   return (
     <Col>
       <div
@@ -197,10 +203,16 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
 const StepForm = ({ states, onNext, onSubmit }) => {
   const [currentStep, setStep] = useState(1)
   const [moveUp, setMoveUp] = useState(false)
+  const [childState, setChildState] = useState({})
 
   useEffect(() => {
     setMoveUp(currentStep === states.length || !states[currentStep - 1].title)
   }, [currentStep])
+
+  const handleNext = () => {
+    setStep(prev => (prev % 3) + 1)
+    onNext({ step: currentStep, data: childState })
+  }
 
   return (
     <SpecialShell>
@@ -233,12 +245,7 @@ const StepForm = ({ states, onNext, onSubmit }) => {
                 </Title>
               )
             }
-            right={
-              <TextButton
-                text="next"
-                onClick={() => setStep(prev => (prev % 3) + 1)}
-              />
-            }
+            right={<TextButton text="next" onClick={handleNext} />}
           />
           <Col
             css={css`
@@ -270,7 +277,8 @@ const StepForm = ({ states, onNext, onSubmit }) => {
               `}
             >
               {states[currentStep - 1].view({
-                onDone: ({ data }) => onNext({ currentStep, data }),
+                step: states[currentStep - 1].step,
+                onChange: setChildState,
               }) || null}
             </Drawer>
           </Col>
@@ -301,6 +309,8 @@ const states = [
 const Page2 = () => {
   const [payload, setPayload] = useState({})
   const handleNext = ({ step, data }) => {
+    console.log(`step: ${step}`)
+    console.log(data)
     switch (step) {
       case states[0].step:
       //handle the data
