@@ -1,5 +1,11 @@
 /** @jsx jsx */
-import React, { useState, useEffect, useMemo } from "react"
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  createContext,
+  useContext,
+} from "react"
 import { css, jsx } from "@emotion/core"
 import styled from "@emotion/styled"
 import { Row, Col, Box, settings, Arrow, Title } from "boostly-ui2"
@@ -11,16 +17,15 @@ import { RadioGroup } from "../components/radioGroup"
 import ButtonRound from "../components/buttonRound"
 import ChatBubble from "./chatBubble"
 import TextField from "./textfield"
+import { motion, AnimatePresence } from "framer-motion"
+import Switch from "../components/switch"
 
 const Spacer = styled.div`
   width: 35px;
 `
 
-const AudienceStep = ({ onSelect, onChange }) => {
+const AudienceStep = props => {
   const [selectedIndex, setIndex] = useState(0)
-  useEffect(() => {
-    onChange(data[selectedIndex])
-  }, [selectedIndex])
   const data = useMemo(
     () => [
       {
@@ -67,13 +72,41 @@ const AudienceStep = ({ onSelect, onChange }) => {
   )
 }
 
-const MessageStep = ({ onChange }) => {
+const PromoStep = ({ onClick = () => {} }) => {
+  const BoostlySwitch = useMemo(
+    () => (
+      <Switch
+        css={css`
+          margin-left: 12px;
+        `}
+        onClick={onClick}
+      />
+    ),
+    []
+  )
+  return (
+    <Row
+      space="between"
+      css={css`
+        height: 80px;
+        padding-left: 32px;
+        padding-right: 20px;
+      `}
+      y
+    >
+      <ButtonRound text="+ Create" color="black" />
+      <Row y>
+        <Title>Include Promo</Title>
+        {BoostlySwitch}
+      </Row>
+    </Row>
+  )
+}
+
+const MessageStep = props => {
   const [text, setText] = useState(
     "Welcome to the best cat you've ever fished from a lake!"
   )
-  useEffect(() => {
-    onChange(text)
-  }, [text])
   return (
     <Col>
       <div
@@ -200,18 +233,36 @@ const Steps = ({ steps, currentStep, onSelect, ...props }) => {
   )
 }
 
-const StepForm = ({ states, onNext, onSubmit }) => {
+const StepsContext = createContext()
+
+const generateId = () => {
+  let id = 1
+  return () => {
+    return id++
+  }
+}
+
+const StepForm = props => {
   const [currentStep, setStep] = useState(1)
   const [moveUp, setMoveUp] = useState(false)
   const [childState, setChildState] = useState({})
+  const [childrenCount, setChildrenCount] = useState(0)
+  const [title, setTitle] = useState("")
 
   useEffect(() => {
-    setMoveUp(currentStep === states.length || !states[currentStep - 1].title)
-  }, [currentStep])
+    setChildrenCount(React.Children.toArray(props.children).length)
+  }, [props.children])
+
+  useEffect(() => {
+    // Get value of title, if any
+    const child = React.Children.toArray(props.children)[currentStep - 1]
+    const title = child.props.title
+    setTitle(title)
+    setMoveUp(currentStep === childrenCount || !title)
+  }, [currentStep, childrenCount])
 
   const handleNext = () => {
-    setStep(prev => (prev % 3) + 1)
-    onNext({ step: currentStep, data: childState })
+    setStep(prev => (prev % childrenCount) + 1)
   }
 
   return (
@@ -228,22 +279,42 @@ const StepForm = ({ states, onNext, onSubmit }) => {
             left={
               <ImageButton
                 imageUrl={require("../images/BackArrow.svg")}
-                onClick={() => setStep(1)}
+                onClick={props.onBack}
               />
             }
             center={
-              currentStep !== states.length ? (
-                <Steps steps={3} currentStep={currentStep} onSelect={setStep} />
-              ) : (
-                <Title
-                  css={css`
-                    color: white;
-                    font-size: 20px;
-                  `}
-                >
-                  {states[currentStep - 1].title}
-                </Title>
-              )
+              <AnimatePresence exitBeforeEnter>
+                {currentStep !== childrenCount ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key="steps"
+                  >
+                    <Steps
+                      steps={childrenCount}
+                      currentStep={currentStep}
+                      onSelect={setStep}
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    key="title"
+                  >
+                    <Title
+                      css={css`
+                        color: white;
+                        font-size: 20px;
+                      `}
+                    >
+                      {title}
+                    </Title>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             }
             right={<TextButton text="next" onClick={handleNext} />}
           />
@@ -254,7 +325,7 @@ const StepForm = ({ states, onNext, onSubmit }) => {
             height="100%"
             x
           >
-            {states[currentStep - 1].title && currentStep !== states.length && (
+            {title && currentStep !== childrenCount && (
               <Title
                 css={css`
                   color: white;
@@ -262,7 +333,7 @@ const StepForm = ({ states, onNext, onSubmit }) => {
                   margin-top: 20px;
                 `}
               >
-                {states[currentStep - 1].title}
+                {title}
               </Title>
             )}
             <Drawer
@@ -276,10 +347,27 @@ const StepForm = ({ states, onNext, onSubmit }) => {
                 right: 0;
               `}
             >
-              {states[currentStep - 1].view({
-                step: states[currentStep - 1].step,
-                onChange: setChildState,
-              }) || null}
+              <StepsContext.Provider
+                value={{
+                  currentStep: currentStep,
+                  currentStepIndex: currentStep - 1,
+                  onStepChange: setStep,
+                  generateId: generateId(),
+                  getIndex: id => {
+                    return React.Children.toArray(props.children).findIndex(
+                      child => {
+                        console.log(
+                          `id: ${id} child.props.id=${child.props.id}`
+                        )
+                        return child.props.id === id
+                      }
+                    )
+                  },
+                  onNext: handleNext,
+                }}
+              >
+                {props.children}
+              </StepsContext.Provider>
             </Drawer>
           </Col>
         </Container>
@@ -288,45 +376,33 @@ const StepForm = ({ states, onNext, onSubmit }) => {
   )
 }
 
-const states = [
-  {
-    step: 1,
-    title: "Who is the intended audience?",
-    view: ({ ...props }) => <AudienceStep {...props} />,
-  },
-  {
-    step: 2,
-    title: "What message are we sending?",
-    view: ({ ...props }) => <MessageStep {...props} />,
-  },
-  {
-    step: 3,
-    title: "How do we look?",
-    view: () => <></>,
-  },
-]
+const Step = props => {
+  const context = useContext(StepsContext)
+  const id = context.generateId()
+  const index = context.getIndex(props.id)
+  return index === context.currentStepIndex ? props.children : null
+}
 
 const Page2 = () => {
-  const [payload, setPayload] = useState({})
-  const handleNext = ({ step, data }) => {
-    console.log(`step: ${step}`)
-    console.log(data)
-    switch (step) {
-      case states[0].step:
-      //handle the data
-      case states[1].step:
-      //like save it to a shared payload
-      case states[2].step:
-      //or put it into global context
-      default:
-        break
-    }
-  }
-  const handleSubmit = () => {
-    // Form indicates that it has reached the end of the form
-  }
+  const [includePromo, setPromo] = useState(false)
+
   return (
-    <StepForm states={states} onNext={handleNext} onSubmit={handleSubmit} />
+    <StepForm onBack={() => setPromo(prev => !prev)}>
+      <Step id="audience">
+        <AudienceStep />
+      </Step>
+      {includePromo && (
+        <Step title="What promo do you want to include?" id="promo">
+          <PromoStep />
+        </Step>
+      )}
+      <Step title="What message are we sending?" id="message">
+        <PromoStep onClick={() => setPromo(prev => !prev)} />
+      </Step>
+      <Step title="How we doing?" id="confirmation">
+        <></>
+      </Step>
+    </StepForm>
   )
 }
 
